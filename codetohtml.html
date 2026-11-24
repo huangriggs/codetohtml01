@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML 程式碼轉檔下載器</title>
+    <!-- 引入 Tailwind CSS 以建立現代化響應式介面 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Google Fonts (Noto Sans TC 與 Fira Code) -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans TC"', 'sans-serif'],
+                        mono: ['"Fira Code"', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+    <!-- 頂部導覽列 -->
+    <header class="bg-slate-800/80 backdrop-blur-md border-b border-slate-700 sticky top-0 z-10">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <!-- 網頁圖示 SVG -->
+                <div class="bg-indigo-600 p-2 rounded-lg shadow-lg shadow-indigo-500/30">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                    </svg>
+                </div>
+                <h1 class="text-lg sm:text-xl font-bold tracking-wide text-white">HTML 程式碼轉檔器</h1>
+            </div>
+            <div class="text-xs sm:text-sm text-slate-400 hidden sm:block">
+                快速將程式碼封裝並下載為網頁檔案
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要工作區 -->
+    <main class="flex-grow max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex flex-col gap-6">
+        
+        <!-- 控制列：檔名輸入與操作按鈕 -->
+        <section class="bg-slate-800 p-4 sm:p-6 rounded-2xl border border-slate-700 shadow-xl flex flex-col md:flex-row items-stretch md:items-end justify-between gap-4">
+            
+            <!-- 檔名輸入區塊 -->
+            <div class="flex-grow max-w-md">
+                <label for="filename-input" class="block text-sm font-medium text-slate-300 mb-2">
+                    輸出檔案名稱 <span class="text-slate-400 text-xs">(留空將自動使用預設值 index)</span>
+                </label>
+                <div class="flex rounded-xl shadow-sm overflow-hidden border border-slate-600 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/40 transition-all bg-slate-900">
+                    <input 
+                        type="text" 
+                        id="filename-input" 
+                        value="index" 
+                        placeholder="index"
+                        aria-label="主檔名"
+                        class="w-full px-4 py-2.5 bg-transparent text-white placeholder-slate-500 focus:outline-none font-mono text-sm sm:text-base"
+                    >
+                    <!-- 固定的副檔名標籤 -->
+                    <span class="inline-flex items-center px-4 bg-slate-700/70 text-slate-300 font-mono text-sm sm:text-base border-l border-slate-600 select-none">
+                        .html
+                    </span>
+                </div>
+            </div>
+
+            <!-- 功能按鈕群組 -->
+            <div class="flex flex-wrap items-center gap-3">
+                <button 
+                    type="button" 
+                    id="sample-btn"
+                    class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                    title="載入一段範例 HTML 程式碼"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    <span>載入範例</span>
+                </button>
+
+                <button 
+                    type="button" 
+                    id="clear-btn"
+                    class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-slate-700 hover:bg-rose-600/80 text-slate-200 hover:text-white text-sm font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                    title="清空編輯區內容"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    <span>清空</span>
+                </button>
+
+                <button 
+                    type="button" 
+                    id="download-btn"
+                    class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white text-sm sm:text-base font-bold shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    <span>下載 HTML 檔案</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- 編輯區與即時預覽雙欄配置 -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow">
+            
+            <!-- 左側：HTML 程式碼輸入區 -->
+            <div class="bg-slate-800 rounded-2xl border border-slate-700 shadow-xl flex flex-col overflow-hidden min-h-[380px] lg:min-h-[500px]">
+                <div class="bg-slate-800/90 px-4 py-3 border-b border-slate-700 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                        <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                        <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                        <span class="ml-2 text-xs font-medium text-slate-300 uppercase tracking-wider">HTML 原始碼編輯器</span>
+                    </div>
+                    <span id="char-count" class="text-xs text-slate-400 font-mono">0 字元</span>
+                </div>
+                <textarea 
+                    id="code-editor" 
+                    spellcheck="false"
+                    placeholder="請在此貼上或輸入您的 HTML 程式碼...&#10;&#10;例如：&#10;<!DOCTYPE html>&#10;<html>&#10;<body>&#10;  <h1>Hello World!</h1>&#10;</body>&#10;</html>"
+                    class="w-full flex-grow p-4 bg-slate-950 text-emerald-400 font-mono text-sm leading-relaxed resize-none focus:outline-none placeholder-slate-600"
+                ></textarea>
+            </div>
+
+            <!-- 右側：即時畫面預覽區 -->
+            <div class="bg-slate-800 rounded-2xl border border-slate-700 shadow-xl flex flex-col overflow-hidden min-h-[380px] lg:min-h-[500px]">
+                <div class="bg-slate-800/90 px-4 py-3 border-b border-slate-700 flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                        <span class="text-xs font-medium text-slate-300 uppercase tracking-wider">即時網頁預覽</span>
+                    </div>
+                    <span class="text-xs text-slate-400">輸入時自動更新</span>
+                </div>
+                <!-- 使用白色背景的 iframe 模擬真實瀏覽器畫面 -->
+                <div class="flex-grow bg-white relative">
+                    <iframe 
+                        id="preview-frame" 
+                        title="HTML 即時預覽"
+                        sandbox="allow-scripts allow-modals"
+                        class="w-full h-full border-0 absolute inset-0"
+                    ></iframe>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- 頁尾 -->
+    <footer class="text-center py-4 text-xs text-slate-500 border-t border-slate-800/60">
+        所有轉檔皆在您的瀏覽器本地端完成，不會上傳任何程式碼至伺服器。
+    </footer>
+
+    <!-- 自訂提示訊息框 (Toast Notification) -->
+    <div id="toast" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+        <div id="toast-content" class="bg-slate-800 border border-slate-600 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3">
+            <span id="toast-icon"></span>
+            <span id="toast-message" class="text-sm font-medium"></span>
+        </div>
+    </div>
+
+    <script>
+        // 取得 DOM 元素
+        const filenameInput = document.getElementById('filename-input');
+        const codeEditor = document.getElementById('code-editor');
+        const previewFrame = document.getElementById('preview-frame');
+        const downloadBtn = document.getElementById('download-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const sampleBtn = document.getElementById('sample-btn');
+        const charCount = document.getElementById('char-count');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+        const toastIcon = document.getElementById('toast-icon');
+        const toastContent = document.getElementById('toast-content');
+
+        let toastTimeout;
+
+        // 顯示提示訊息的函式 (取代 alert)
+        function showToast(message, type = 'success') {
+            clearTimeout(toastTimeout);
+            toastMessage.textContent = message;
+
+            if (type === 'error') {
+                toastContent.className = 'bg-rose-950/95 border border-rose-500/50 text-rose-100 px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3';
+                toastIcon.innerHTML = `<svg class="w-5 h-5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+            } else if (type === 'info') {
+                toastContent.className = 'bg-slate-800/95 border border-indigo-500/50 text-slate-100 px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3';
+                toastIcon.innerHTML = `<svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+            } else {
+                toastContent.className = 'bg-emerald-950/95 border border-emerald-500/50 text-emerald-100 px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3';
+                toastIcon.innerHTML = `<svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // 更新即時預覽與字數統計
+        function updatePreview() {
+            const code = codeEditor.value;
+            charCount.textContent = `${code.length} 字元`;
+            
+            // 將程式碼寫入 iframe 的 srcdoc 進行安全預覽
+            if (code.trim() === '') {
+                previewFrame.srcdoc = `
+                    <div style="display:flex;height:100vh;align-items:center;justify-content:center;font-family:sans-serif;color:#94a3b8;margin:0;">
+                        <p>左側輸入 HTML 程式碼後，這裡會顯示即時預覽畫面</p>
+                    </div>
+                `;
+            } else {
+                previewFrame.srcdoc = code;
+            }
+        }
+
+        // 監聽編輯器輸入事件
+        codeEditor.addEventListener('input', updatePreview);
+
+        // 支援在 textarea 中按 Tab 鍵縮排
+        codeEditor.addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                this.value = this.value.substring(0, start) + "    " + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 4;
+                updatePreview();
+            }
+        });
+
+        // 過濾不合法的檔名字元並確保預設為 index
+        function getSanitizedFilename() {
+            let rawName = filenameInput.value.trim();
+            // 移除使用者可能不小心自己輸入的 .html 副檔名
+            rawName = rawName.replace(/\.html?$/i, '');
+            // 移除作業系統不允許的檔名字元 (\ / : * ? " < > |)
+            rawName = rawName.replace(/[\\/:*?"<>|]/g, '');
+            
+            // 若清空或無效則退回預設值 index
+            return rawName === '' ? 'index' : rawName;
+        }
+
+        // 下載 HTML 檔案的核心邏輯
+        downloadBtn.addEventListener('click', () => {
+            try {
+                const htmlContent = codeEditor.value;
+                
+                if (!htmlContent.trim()) {
+                    showToast('請先輸入 HTML 程式碼再進行下載！', 'error');
+                    codeEditor.focus();
+                    return;
+                }
+
+                const baseName = getSanitizedFilename();
+                // 同步更新輸入框顯示的乾淨檔名
+                filenameInput.value = baseName;
+                const fullFilename = `${baseName}.html`;
+
+                // 建立包含 UTF-8 編碼的 Blob 物件
+                const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+
+                // 建立隱藏的 <a> 標籤觸發瀏覽器下載
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fullFilename;
+                document.body.appendChild(a);
+                a.click();
+
+                // 清理資源
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                showToast(`已成功下載：${fullFilename}`, 'success');
+            } catch (error) {
+                console.error('下載發生錯誤:', error);
+                showToast('檔案產生失敗，請稍後再試。', 'error');
+            }
+        });
+
+        // 清空按鈕事件
+        clearBtn.addEventListener('click', () => {
+            if (codeEditor.value.trim() === '') {
+                showToast('編輯區已經是空的囉！', 'info');
+                return;
+            }
+            codeEditor.value = '';
+            updatePreview();
+            codeEditor.focus();
+            showToast('已清空程式碼內容', 'info');
+        });
+
+        // 載入範例程式碼按鈕事件
+        sampleBtn.addEventListener('click', () => {
+            const sampleHTML = `<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的第一個網頁</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 2.5rem;
+            border-radius: 1rem;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        button {
+            margin-top: 1rem;
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 0.5rem;
+            background: white;
+            color: #764ba2;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>你好，世界！</h1>
+        <p>這是由 HTML 轉檔器生成的網頁檔案。</p>
+        <button onclick="this.textContent='點擊成功！'">點我測試互動</button>
+    </div>
+</body>
+</html>`;
+            codeEditor.value = sampleHTML;
+            updatePreview();
+            showToast('已載入範例 HTML 程式碼', 'info');
+        });
+
+        // 初始化預覽畫面
+        updatePreview();
+    </script>
+</body>
+</html>
